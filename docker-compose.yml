@@ -1,7 +1,7 @@
 services:
   console:
     container_name: oasm-console
-    image: oasm/oasm-console:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-console:${IMAGE_TAG:-latest}
     platform: linux/amd64
     networks:
       - oasm
@@ -16,7 +16,7 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: oasm/oasm-api:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-api:${IMAGE_TAG:-latest}
     platform: linux/amd64
     networks:
       - oasm
@@ -70,7 +70,7 @@ services:
 
   migration:
     container_name: oasm-migration
-    image: oasm/oasm-api:${IMAGE_TAG:-dev}
+    image: sil3ntcor3/myoasm-api:${IMAGE_TAG:-dev}
     platform: linux/amd64
     networks:
       - oasm
@@ -88,7 +88,7 @@ services:
         condition: service_healthy
 
   oasm-worker:
-    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-worker:${IMAGE_TAG:-latest}
     platform: linux/amd64
     environment:
       - WORKER_API_KEY=change_me
@@ -122,7 +122,7 @@ services:
     networks:
       - oasm
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER:-postgres}" -d "$${POSTGRES_DB:-open_asm}"']
       interval: 1s
       timeout: 5s
       retries: 10
