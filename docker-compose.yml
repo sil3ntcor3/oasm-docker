@@ -1,12 +1,12 @@
 services:
   console:
     container_name: oasm-console
-    image: sil3ntcor3/myoasm-console:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-console:${IMAGE_TAG:-dev}
     platform: linux/amd64
     networks:
       - oasm
     ports:
-      - '8080:80'
+      - '9090:80'
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: on-failure
@@ -16,7 +16,7 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: sil3ntcor3/myoasm-api:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-api:${IMAGE_TAG:-dev}
     platform: linux/amd64
     networks:
       - oasm
@@ -28,7 +28,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-open_asm}
       - POSTGRES_SSL=${POSTGRES_SSL:-false}
       - PORT=${PORT:-6276}
-      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+      - OASM_CLOUD_APIKEY=${WORKER_ENROLLMENT_TOKEN:?Set WORKER_ENROLLMENT_TOKEN to a secret of at least 32 characters}
       - REDIS_URL=${REDIS_URL:-redis://:open_asm@redis:6379/0}
       - GEO_IP_URL=geo-ip-database:4360
       - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT:-http://rustfs:9000}
@@ -41,6 +41,12 @@ services:
       redis:
         condition: service_healthy
       geo-ip-database:
+        condition: service_healthy
+      # Object storage must be reachable before the API boots. The API
+      # provisions its buckets on startup, and a job result is written to
+      # storage before anything else happens to it, so an API that starts first
+      # cannot accept results until storage catches up.
+      rustfs:
         condition: service_healthy
       migration:
         condition: service_completed_successfully
@@ -61,6 +67,17 @@ services:
     volumes:
       - rustfs-data:/data:rw
     restart: 'always'
+    # Readiness gate for core-api. Deliberately NOT `curl -f`: an unauthenticated
+    # request to the S3 root answers 403, which -f treats as a failure even
+    # though it proves the service is up and serving. Plain curl exits 0 on any
+    # HTTP response and non-zero only when the connection itself fails, which is
+    # exactly the distinction we need here.
+    healthcheck:
+      test: ['CMD', 'curl', '-s', '-o', '/dev/null', 'http://localhost:9000']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     logging:
       driver: json-file
       options:
@@ -88,10 +105,10 @@ services:
         condition: service_healthy
 
   oasm-worker:
-    image: sil3ntcor3/myoasm-worker:${IMAGE_TAG:-latest}
+    image: sil3ntcor3/myoasm-worker:${IMAGE_TAG:-dev}
     platform: linux/amd64
     environment:
-      - WORKER_API_KEY=change_me
+      - WORKER_API_KEY=${WORKER_ENROLLMENT_TOKEN:?Set WORKER_ENROLLMENT_TOKEN to a secret of at least 32 characters}
       - WORKER_GRPC_HOST=core-api
       - WORKER_GRPC_PORT=16276
       - WORKER_MAX_CONCURRENCY=10
