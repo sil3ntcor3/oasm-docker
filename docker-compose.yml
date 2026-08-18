@@ -113,9 +113,16 @@ services:
       - WORKER_GRPC_PORT=16276
       - WORKER_MAX_CONCURRENCY=10
       - WORKER_TOOL_PATH=/app/oasm-tools
+      - SUBFINDER_PROVIDER_CONFIG=/run/secrets/subfinder-provider-config.yaml
     volumes:
       - type: volume
         target: /app/oasm-tools
+      - type: bind
+        source: ${SUBFINDER_PROVIDER_CONFIG_PATH:-./provider-config.yaml}
+        target: /run/secrets/subfinder-provider-config.yaml
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       - oasm
     restart: on-failure

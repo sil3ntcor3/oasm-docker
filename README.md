@@ -20,7 +20,12 @@
 
    ```bash
    cp .env.example .env
+   cp provider-config.example.yaml provider-config.yaml
+   chmod 600 provider-config.yaml
    ```
+
+   Add credentials only for the Subfinder providers you use. The populated
+   `provider-config.yaml` file is ignored by Git.
 
 2. **Pull and Start**:
 
@@ -41,6 +46,43 @@ Edit the `.env` file to customize your deployment:
 - `POSTGRES_*`: Database connection settings
 - `REDIS_PASSWORD`: Redis authentication password
 - `LLM_*`: AI assistant configuration (if enabled)
+- `SUBFINDER_PROVIDER_CONFIG_PATH`: Host path to the Subfinder provider
+  configuration (default: `./provider-config.yaml`)
+
+### Subfinder provider credentials
+
+The populated provider configuration is mounted read-only into every worker at
+`/run/secrets/subfinder-provider-config.yaml`. It is not passed as an
+environment-variable value and is not stored in the worker image.
+
+Simple provider credentials use one YAML list entry per key:
+
+```yaml
+securitytrails:
+  - SECURITYTRAILS_API_KEY
+github:
+  - GITHUB_TOKEN
+```
+
+Providers requiring multiple values use one colon-delimited entry:
+
+```yaml
+censys:
+  - "API_ID:API_SECRET"
+fofa:
+  - "EMAIL:API_KEY"
+```
+
+To keep the populated file outside this repository, set an absolute host path
+in `.env`:
+
+```dotenv
+SUBFINDER_PROVIDER_CONFIG_PATH=/etc/oasm/subfinder/provider-config.yaml
+```
+
+On native Linux hosts, make the file readable by the UID/GID used by the worker
+container while denying access to unrelated users. Recreate the workers after
+rotating credentials so every replica opens the replacement file.
 
 ## 🔧 Useful Commands
 

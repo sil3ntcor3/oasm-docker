@@ -1,0 +1,44 @@
+# Copy this file to provider-config.yaml and add only the credentials you use.
+# Never commit the populated file. Subfinder supports multiple keys per source.
+# Composite credentials must remain a single colon-delimited YAML value.
+
+alienvault: []
+bevigil: []
+bufferover: []
+builtwith: []
+c99: []
+censys: [] # API_ID:API_SECRET
+certspotter: []
+chaos: []
+chinaz: []
+digitalyama: []
+dnsdb: []
+dnsdumpster: []
+dnsrepo: []
+domainsproject: []
+driftnet: []
+fofa: [] # EMAIL:API_KEY
+fullhunt: []
+github: []
+hackertarget: []
+intelx: [] # HOST:API_KEY, for example 2.intelx.io:API_KEY
+leakix: []
+merklemap: []
+netlas: []
+onyphe: []
+profundis: []
+pugrecon: []
+quake: []
+reconeer: []
+redhuntlabs: [] # ENDPOINT:API_TOKEN
+robtex: []
+rsecloud: []
+securitytrails: []
+shodan: []
+submd: []
+threatbook: []
+urlscan: []
+virustotal: []
+whoisxmlapi: []
+windvane: []
+zoomeyeapi: [] # HOST:API_KEY, using the regional host for your account
