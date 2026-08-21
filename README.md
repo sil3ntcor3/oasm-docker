@@ -5,6 +5,7 @@
 - Docker
 - Docker Compose
 - Make
+- Bash
 - Minimum System Requirements:
   - 4 CPU cores
   - 4GB RAM
@@ -27,22 +28,34 @@
    Add credentials only for the Subfinder providers you use. The populated
    `provider-config.yaml` file is ignored by Git.
 
-2. **Pull and Start**:
+2. Set unique deployment secrets in `.env`. In particular, configure
+   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `WORKER_ENROLLMENT_TOKEN`.
+
+3. **Install and create the first administrator**:
 
    ```bash
-   make
+   ./install.sh
    ```
+
+   The installer pulls the published images, starts the database, applies
+   migrations, and prompts privately for the initial administrator credentials.
+   The Open-ASM source repository is not required.
+
+See [Administrator provisioning](docs/administrator-provisioning.md) for the
+complete installation, verification, recovery, and update process.
 
 ## 🔗 Access the Platform
 
-Web Console: http://localhost:6276
+Web Console: http://localhost:9090
 
 ## 📋 Configuration
 
 Edit the `.env` file to customize your deployment:
 
 - `IMAGE_TAG`: Docker image version (default: `latest`)
-- `OASM_CLOUD_APIKEY`: API key for cloud integration
+- `BETTER_AUTH_SECRET`: persistent application authentication secret
+- `BETTER_AUTH_URL`: public console origin used by authentication
+- `WORKER_ENROLLMENT_TOKEN`: shared API/worker enrollment secret
 - `POSTGRES_*`: Database connection settings
 - `REDIS_PASSWORD`: Redis authentication password
 - `LLM_*`: AI assistant configuration (if enabled)
@@ -101,6 +114,7 @@ docker compose up --scale oasm-worker=5
 
 | Command                 | Description                                                                |
 | ----------------------- | -------------------------------------------------------------------------- |
+| `make install`          | One-time installation and first-administrator provisioning                |
 | `make` or `make all`    | Default target - pulls latest images and runs the full system              |
 | `make pull`             | Pull the latest images from both docker-compose files (main and assistant) |
 | `make run`              | Run services (without pulling new images)                                  |

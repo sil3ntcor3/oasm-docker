@@ -1,7 +1,11 @@
-.PHONY: all pull run update update-main down clean pull-latest-commit
+.PHONY: all install pull run update update-main down clean pull-latest-commit
 
 # Default target - runs the full system
 all: pull-latest-commit pull run
+
+# One-time installation and first-administrator provisioning
+install:
+	./install.sh
 
 # Pull the latest images
 pull:

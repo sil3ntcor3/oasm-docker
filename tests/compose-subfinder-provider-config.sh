@@ -20,6 +20,7 @@ securitytrails:
 EOF
 
 cat >"$compose_env" <<EOF
+BETTER_AUTH_SECRET=test-auth-secret-with-at-least-32-characters
 WORKER_ENROLLMENT_TOKEN=test-enrollment-token-with-at-least-32-characters
 REDIS_PASSWORD=test-redis-password
 SUBFINDER_PROVIDER_CONFIG_PATH=$provider_config
