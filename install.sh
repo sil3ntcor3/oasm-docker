@@ -72,7 +72,25 @@ fi
 
 printf '%s\n' 'Starting the database and applying migrations...'
 compose up -d --wait postgres redis
-compose up --no-deps migration
+
+# The migration service runs `typeorm migration:run`, and that CLI overrides the
+# DataSource with logging: ["query", "error", "schema"], so every DDL statement of
+# every migration is echoed. Attaching to it buries the installer under hundreds of
+# lines of SQL that say nothing about whether the install is going well. Start it
+# detached instead and wait on the container, which also fixes the exit status:
+# an attached `compose up` returns 0 even when the container it ran exits non-zero,
+# so a failed migration used to sail straight past `set -e` into admin provisioning.
+compose up -d --no-deps migration
+migration_container="$(compose ps --all --quiet migration)"
+if [[ -z "${migration_container}" ]]; then
+  printf '%s\n' 'The migration container did not start.' >&2
+  exit 1
+fi
+if [[ "$(docker wait "${migration_container}")" != '0' ]]; then
+  printf '%s\n' 'Database migrations failed. Full migration output follows.' >&2
+  docker logs "${migration_container}" >&2
+  exit 1
+fi
 
 IFS= read -r -p 'Administrator email: ' admin_email
 IFS= read -r -s -p 'Administrator password: ' admin_password
